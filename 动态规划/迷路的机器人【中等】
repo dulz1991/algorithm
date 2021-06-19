@@ -1,0 +1,67 @@
+设想有个机器人坐在一个网格的左上角，网格 r 行 c 列。机器人只能向下或向右移动，但不能走到一些被禁止的网格（有障碍物）。设计一种算法，寻找机器人从左上角移动到右下角的路径。
+
+网格中的障碍物和空位置分别用 1 和 0 来表示。
+返回一条可行的路径，路径由经过的网格的行号和列号组成。左上角为 0 行 0 列。如果没有可行的路径，返回空数组。
+
+示例 1:
+输入:
+[
+  [0,0,0],
+  [0,1,0],
+  [0,0,0]
+]
+输出: [[0,0],[0,1],[0,2],[1,2],[2,2]]
+解释: 
+输入中标粗的位置即为输出表示的路径，即
+0行0列（左上角） -> 0行1列 -> 0行2列 -> 1行2列 -> 2行2列（右下角）
+
+说明：r 和 c 的值均不超过 100。
+
+思路：
+通过动态规划 可规划处可行路径，dp[i][j]里存储的不是路径的数量，而是记录到达此节点所经过的坐标，
+优先取上一个，其次取左边的，否则此节点不可达。 到了最后一个节点 如果可到，会按照上述规则汇总路线，否则 没有数据记录，则表示不可达
+
+/**
+ * @param {number[][]} obstacleGrid
+ * @return {number[][]}
+ */
+var pathWithObstacles = function(obstacleGrid) {
+    let rows = obstacleGrid.length;
+    let cols = obstacleGrid[0].length;
+    let dp = [];
+    
+    for(let i=0; i<rows; i++){
+        //let topLine = dp[i-1] || []; //上一行
+        let line = [];
+        for(let j=0; j<cols; j++){
+            if(obstacleGrid[i][j]==1){
+                line[j] = null;
+                continue;
+            } 
+
+            let prePath = (dp[i-1] || [])[j] || line[j-1]  ; //取上一个元素或者左边元素 作为前一个node
+            let path = null;
+            if(prePath){ //如果有上一个节点 对于边缘元素来说 没有上一个节点
+                path = prePath + `${i},${j};`
+                
+            } else if(i==0 && j==0){
+                path = `${i},${j};`
+            }
+
+            line[j] = path;
+        }
+        dp[i] = line;
+    }
+	let last = dp[rows-1][cols-1];
+    if(!last){
+        return [];
+    }
+
+    last = last.substr(0, last.length-1);
+    let res = last.split(";");
+    for(let i=0; i<res.length;i++){
+        res[i] = res[i].split(',')
+    }
+    return res
+    
+};
