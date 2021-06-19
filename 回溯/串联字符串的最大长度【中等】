@@ -45,6 +45,12 @@ str：累加字符串
 function each(map, arr, i, str){
     if(i==arr.length) return ////是否达到最后一个
 
+ if(i==arr.length-1){ //如果到了最后一个
+        if(str.length + arr[i].length <= map.max){ //即便加上了 也不到当前最大值，可直接结束
+            return
+        }
+    }
+    
     let curStr = arr[i]+str;
     if(hasSameChar(curStr)){  //累加后是否有重复 若重复 跳过此次计算
         each(map, arr, i+1, str) 
