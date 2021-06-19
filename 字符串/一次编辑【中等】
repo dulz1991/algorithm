@@ -1,0 +1,81 @@
+字符串有三种编辑操作:插入一个字符、删除一个字符或者替换一个字符。 给定两个字符串，编写一个函数判定它们是否只需要一次(或者零次)编辑。
+
+示例 1:
+输入: 
+first = "pale"
+second = "ple"
+输出: True
+
+示例 2:
+输入: 
+first = "pales"
+second = "pal"
+输出: False
+
+思路：
+增加和删除 可视为一种处理方式，对first进行删除，可理解为对second增加，所以将2者视为增加操作。
+替换视为另一种操作。
+1. 如果是替换操作, 只需对比first和second两者之间的不同字符串数量个数，如果超过一个，则返回false
+2. 如果是增加操作，那么就是说字符串长度差超过1，直接就是false，如果长度差为1，同时遍历两个字符串，如果第i个字符不一样，则在短字符串补充一位，两者字符长度相等，接下来的逻辑就类似替换操作了，
+如果接下来的遍历发现还有字符串不一样，那就是false。
+
+/**
+ * @param {string} first
+ * @param {string} second
+ * @return {boolean}
+ */
+var oneEditAway = function(first, second) {
+    let aLen = first.length;
+    let bLen = second.length;
+    if(Math.abs(aLen-bLen) > 1 ){
+        return false;
+    }
+    if(aLen == bLen){
+        return compare1(first, second, aLen-1);
+    }
+
+    //let a,b; //短字符串给a 长字符串给b
+    if(aLen<bLen){
+        return compare2(first, second);
+    } else {
+        return compare2(second, first);
+    }
+};
+
+//增加或删除操作
+function compare2(a, b) {
+    let aLen = a.length;
+    let bLen = b.length;
+    let flag = false;
+    while(aLen>=0 && bLen>=0){
+        if(a[aLen] != b[bLen]){ 
+            if(flag){
+                return false;
+            } else {
+                flag = true;
+            }
+            bLen--;
+            continue;
+        }
+
+        aLen--;
+        bLen--;
+    }
+    return true;
+}
+
+//替换操作
+function compare1(first, second, len){
+    let flag = false;
+    while(len>=0){
+        if(first[len] != second[len]){
+            if(flag){
+                return false;
+            } else {
+                flag = true;
+            }
+        }
+        len--;
+    }
+    return true;
+}
