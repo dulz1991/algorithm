@@ -1,1 +1,68 @@
-11
+/**
+ * @param {number[]} pushed
+ * @param {number[]} popped
+ * @return {boolean}
+ * 双指针
+ * 基于第1个popped数据b，从pushed遍历，找到与b相等，将此数据从pushed移除，popped指针后移一位
+ * 如果入栈与出栈长度不一样 返回false
+ */
+var validateStackSequences = function(pushed, popped) {
+    if(pushed.length == 0 &&  popped.length==0) return true;
+
+    let left, right;
+    let j=0; //popped指针
+    for(let i=0; i<pushed.length; i++){
+        if(pushed[i] == popped[0]){
+            left = i-1;
+            right = i+1;
+
+            pushed[i] = null;
+
+            j++;
+
+            break;
+        }
+    }
+    
+    debugger
+    while(j<popped.length){
+        let matched = false;//是否有匹配
+
+        if(left>=0){ //左指针是否有效
+            while(left>=0){ //left是否存在
+                if(pushed[left]==null){
+                    left--;
+                    continue;
+                }
+                if(pushed[left] == popped[j]) {//左指针匹配 指针-1，出栈指针+1
+                    pushed[left] = null;
+                    left--;
+                    j++;
+                    matched = true;
+                } else {
+                    break;
+                }
+            }
+        }   
+
+        if(right<pushed.length) { //右指针是否有效
+            if(pushed[right] == popped[j]){ //右指针匹配 指针+1，出栈指针+1
+                pushed[right] = null;
+                right++
+                j++;
+                matched = true;
+            } else { //如果右侧指针不匹配 可以继续向右便利匹配
+                matched = true
+                right++;
+                left = right-1;
+            }
+        }
+
+        if(!matched){ //如果左右指针都没有匹配  返回false
+            return false;
+        }
+    }
+
+    return true;
+
+};
