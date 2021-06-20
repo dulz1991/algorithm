@@ -9,23 +9,14 @@
 var validateStackSequences = function(pushed, popped) {
     if(pushed.length == 0 &&  popped.length==0) return true;
 
-    let left, right;
-    let j=0; //popped指针
-    for(let i=0; i<pushed.length; i++){
-        if(pushed[i] == popped[0]){
-            left = i-1;
-            right = i+1;
+    let pos = pushed.indexOf(popped[0]);
+    //if(pos==-1) return true; 
+    pushed[pos] = null;
+    let left = pos-1, right = pos+1;
+    let j=1;//popped指针
+    let poppedLen = popped.length;
 
-            pushed[i] = null;
-
-            j++;
-
-            break;
-        }
-    }
-    
-    debugger
-    while(j<popped.length){
+    while(j<poppedLen){
         let matched = false;//是否有匹配
 
         if(left>=0){ //左指针是否有效
@@ -45,7 +36,7 @@ var validateStackSequences = function(pushed, popped) {
             }
         }   
 
-        if(right<pushed.length) { //右指针是否有效
+        if(right<poppedLen) { //右指针是否有效
             if(pushed[right] == popped[j]){ //右指针匹配 指针+1，出栈指针+1
                 pushed[right] = null;
                 right++
