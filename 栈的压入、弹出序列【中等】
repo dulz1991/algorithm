@@ -1,0 +1,113 @@
+输入两个整数序列，第一个序列表示栈的压入顺序，请判断第二个序列是否为该栈的弹出顺序。
+假设压入栈的所有数字均不相等。
+例如，序列 {1,2,3,4,5} 是某栈的压栈序列，序列 {4,5,3,2,1} 是该压栈序列对应的一个弹出序列，但 {4,3,5,1,2} 就不可能是该压栈序列的弹出序列。
+
+示例 1：
+输入：pushed = [1,2,3,4,5], popped = [4,5,3,2,1]
+输出：true
+解释：我们可以按以下顺序执行：
+push(1), push(2), push(3), push(4), pop() -> 4,
+push(5), pop() -> 5, pop() -> 3, pop() -> 2, pop() -> 1
+
+示例 2：
+输入：pushed = [1,2,3,4,5], popped = [4,3,5,1,2]
+输出：false
+解释：1 不能在 2 之前弹出。
+ 
+
+提示：
+0 <= pushed.length == popped.length <= 1000
+0 <= pushed[i], popped[i] < 1000
+pushed 是 popped 的排列。
+
+
+思路：
+双指针
+如果入栈与出栈长度不一样 返回false
+基于第1个popped数据b，从pushed遍历，找到第i个元素与b相等，将此数据从pushed移除（设置为null），popped指针后移一位，同时left指针为i-1,right指针设为i+1
+while循环， 条件为j<popped.length
+while循环内，分别对左指针和有指针进行匹配，如果左指针匹配，左指针-1,pushed[left]=null；如果右指针匹配，右指针+1,,pushed[right]=null；如果都没有匹配，直接返回false
+注意：右指针匹配时，如果右指针没有匹配，且下标没有达到pushed的长度，依旧可以继续向右遍历匹配，如果一直没有匹配到，则视为没有匹配。
+由于右指针的特殊情况，会影响到左指针，因为如果右指针继续遍历匹配到了，左指针的索引为也需要指向right-1。
+基于此情况，左指针在匹配时，由于指针位置可能发生变化，导致左指针匹配时，可能会遇到null值,那就需要循环寻找左边不为null的值，直到left<0
+
+
+/**
+ * @param {number[]} pushed
+ * @param {number[]} popped
+ * @return {boolean}
+ * 双指针
+ * 基于第1个popped数据b，从pushed遍历，找到与b相等，将此数据从pushed移除，popped指针后移一位
+ * 如果入栈与出栈长度不一样 返回false
+ */
+var validateStackSequences = function(pushed, popped) {
+    if(pushed.length == 0 &&  popped.length==0) return true;
+    //if(pushed.length !=  popped.length) return false;
+
+    //找到popped中 第一个元素对应的pushed下标位置，以此进行双指针遍历
+    let left, right;
+    let j=0; //popped指针
+    for(let i=0; i<pushed.length; i++){
+        if(pushed[i] == popped[0]){
+            //pushed = pushed.splice(i,1); //入栈数组移除此元素
+            left = i-1;
+            right = i+1;
+
+            pushed[i] = null;
+
+            j++;
+
+            break;
+        }
+    }
+    
+    debugger
+    while(j<popped.length){
+        let matched = false;//是否有匹配
+
+        if(left>=0){ //左指针是否有效
+            while(left>=0){ //left是否存在
+                if(pushed[left]==null){
+                    left--;
+                    continue;
+                }
+                if(pushed[left] == popped[j]) {//左指针匹配 指针-1，出栈指针+1
+                    pushed[left] = null;
+
+                    left--;
+                    j++;
+                    matched = true;
+                    
+                    //pushed = pushed.splice(left, 1) 
+                } else {
+                    break;
+                }
+            }
+        }   
+
+        if(right<pushed.length) { //右指针是否有效
+            if(pushed[right] == popped[j]){ //右指针匹配 指针+1，出栈指针+1
+                pushed[right] = null;
+
+                right++
+                j++;
+                //pushed = pushed.splice(right, 1)
+                
+                matched = true;
+            } else { //如果右侧指针不匹配 可以继续向右便利匹配
+                matched = true
+                right++;
+
+                left = right-1
+                
+            }
+        }
+
+        if(!matched){ //如果左右指针都没有匹配  返回false
+            return false;
+        }
+    }
+
+    return true;
+
+};
