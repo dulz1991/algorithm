@@ -73,7 +73,7 @@ function reduce(target){
 		return -1
 	}
 	
-	//计算max与sum的倍数
+//计算max与sum的倍数 如果最大值远远大于其他元素的和 为避免反复计算 按倍数去减
 	let times = Math.floor(max/sum) - 1;
 	max -= sum*times;
 	
