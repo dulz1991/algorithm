@@ -1,0 +1,73 @@
+给定一个数组 nums 和滑动窗口的大小 k，请找出所有滑动窗口里的最大值。
+示例:
+
+输入: nums = [1,3,-1,-3,5,3,6,7], 和 k = 3
+输出: [3,3,5,5,6,7] 
+解释: 
+
+  滑动窗口的位置                最大值
+---------------               -----
+[1  3  -1] -3  5  3  6  7       3
+ 1 [3  -1  -3] 5  3  6  7       3
+ 1  3 [-1  -3  5] 3  6  7       5
+ 1  3  -1 [-3  5  3] 6  7       5
+ 1  3  -1  -3 [5  3  6] 7       6
+ 1  3  -1  -3  5 [3  6  7]      7
+ 
+提示：
+你可以假设 k 总是有效的，在输入数组不为空的情况下，1 ≤ k ≤ 输入数组的大小。
+
+思路：
+从滑动窗口的角度触发，此题，虽标记为困难题，实际上可视为中等，若是熟悉了滑动窗口，甚至可以说是简单。
+构建滑动窗口，成员属性：窗口大小limit，窗口内数组：arr，每个窗口记录的最大值：maxArr；
+循环nums，向窗口中add数据；
+每次add，判断ar是否长度到了窗口值，如果没有达到，比较max中的值与传递过来的nums[i]，保留最大值;
+如果达到了窗口值，弹出最先加入arr的值，后补充nums[i]到栈尾，比较移除的数据 是否是最大值，比较部分的代码如下：
+if(pop == max[max.length-1]){
+      //重新计算最大值
+      max.push(Math.max(...arr)); //否则 取max中上一个值
+  } else {
+      max.push( Math.max(max[max.length-1], v) ); //否则 比较max中最后加入的 与 v的大小 保留较大者
+  }
+  
+  具体代码：
+  /**
+ * @param {number[]} nums
+ * @param {number} k
+ * @return {number[]}
+ */
+var maxSlidingWindow = function(nums, k) {
+    let win = new SlideWindow(k);
+    for(let i=0; i<nums.length; i++){
+        win.add(nums[i]);
+    }
+    return win.result();
+};
+
+function SlideWindow(k){
+    let limit = k;
+    let arr = [];
+    let max = [];
+
+    this.add = function(v){
+        if(arr.length == limit){ //是否长度到了窗口值
+            let pop = arr.pop(); //弹出最先加入的值
+            arr.unshift(v); //补充数据
+
+            //移除的数据 是否是最大值
+            if(pop == max[max.length-1]){
+                //重新计算最大值
+                max.push(Math.max(...arr)); //否则 取max中上一个值
+            } else {
+                max.push( Math.max(max[max.length-1], v) ); //否则 比较max中最后加入的 与 v的大小 保留较大者
+            }
+        } else {
+            arr.unshift(v); //补充数据
+            max[0] = Math.max(max[0]||-999999, v); //比较max中的值与v，保留最大值
+        }
+    }
+
+    this.result = function(){
+        return max;
+    }
+}
