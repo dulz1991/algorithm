@@ -1,0 +1,147 @@
+参考滑动窗口的同名题，链接如下。
+链接：https://github.com/dulz1991/algorithm/blob/main/%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3/%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3%E7%9A%84%E6%9C%80%E5%A4%A7%E5%80%BC%E3%80%90%E5%9B%B0%E9%9A%BE%E3%80%91
+滑动窗口中的同名题，是基于滑动窗口的思想实现的，前提是数据量少，如果数据量大了，比如十万的数据量，窗口大小5000，那就要超时了。超时的关键点在于搜索滑动窗口内的数据，因为要移除和添加，都很耗时。
+
+以下基于二分法进行优化：
+将窗口中的数组进行排序，从大到小。
+添加数据时，通过二分法，找到arr[mid] >= nums[i] >= arr[mid+1]的位置，进行添加；
+删除数据时，也通过二分法，找到arr[mid] == nums[i],进行删除;
+
+/**
+ * @param {number[]} nums
+ * @param {number} k
+ * @return {number[]}
+ */
+var maxSlidingWindow = function(nums, k) {
+    if(nums.length==0){
+        return [];
+    }
+    if(nums.length <= k){
+        return [Math.max(...nums)];
+    }
+
+    let win = new SlideWindow(nums, k);
+    for(let i=0; i<nums.length; i++){
+        win.add(i, nums[i]);
+    }
+    return win.result();
+};
+
+function SlideWindow(sourceNums, k){
+    let nums = sourceNums;
+    let limit = k;
+    let arr = []; //优先队列
+    //let map = {}; //已加入的数据，k为nums[i], v为对应的数量
+    let max = [-999999];
+
+    this.add = function(i, v){
+        if(arr.length == limit){ //是否长度到了窗口值
+            removeFromArr(i-limit);//移除首个加入的元素
+            pushToArr(v); //添加新元素
+			max.push(arr[0]); // 取优先队列的首元素
+        } else {
+            pushToArr(v);
+            max[0] = Math.max(max[0], v); //比较max中的值与v，保留最大值
+        }
+    }
+
+    //移除最前面加入的元素
+    function removeFromArr(index){
+        let temp = nums[index];
+
+        if(arr[0] == temp){
+            arr.splice(0, 1);
+            return;
+        }
+        if(arr[arr.length-1] == temp){
+            arr.pop();
+            return;
+        }
+        if(arr.length<20){
+            for(let j=0; j<arr.length; j++){
+                if(arr[j] == temp){
+                    arr.splice(j, 1);
+                    return;
+                }
+            }
+        }
+
+        //二分查找比左边比v小 右边比v大的 
+        let left = 0, right = arr.length;
+        while(true){
+			let tempLeft = left;
+            let mid = Math.floor( (right + left) / 2);
+            
+            if(arr[mid] == temp){
+                arr.splice(mid, 1);
+                break;
+            }
+            if(arr[mid+1] == temp){
+                arr.splice(mid+1, 1);
+                break;
+            }
+            
+            if(arr[mid] > temp ){ //中间数大 往右继续二分
+                left = mid;
+                right = arr.length;
+            } else {
+                left = tempLeft;
+                right = mid;
+            }
+        }
+        
+    }
+
+
+    //按照大小递减
+    function pushToArr(v){
+        if(arr.length==0 || v <= arr[arr.length-1]){ //比最小值小
+            arr.push(v)
+            return;
+        }
+        if(v >= arr[0]){ //比最大值大
+            arr.unshift(v);
+            return
+        }
+        
+        if(arr.length<20){ //小于20 直接遍历
+            for(let j=0; j<arr.length; j++){
+                if(arr[j] <= v){ //找到最接近v的元素 在它前面添加v
+                    arr.splice(j, 0, v);
+                    break;
+                }
+            }
+            return
+        }
+
+        //二分查找比左边比v小 右边比v大的 
+        let left = 0, right = arr.length;
+        
+        while(true){
+			let tempLeft = left;
+            let mid = Math.floor( (right + left) / 2);
+            
+            if(arr[mid] == v || arr[mid+1] == v){
+                arr.splice(mid+1, 0, v);
+                break;
+            }
+            if(arr[mid] > v && arr[mid+1] <v ){
+                arr.splice(mid+1, 0, v);
+                break;
+            }
+            if(arr[mid] > v ){ //中间数大 往右继续二分
+                left = mid;
+                right = arr.length;
+            } else {
+                left = tempLeft;
+                right = mid;
+            }
+
+        }
+        
+    }
+
+    this.result = function(){
+        return max;
+    }
+}
