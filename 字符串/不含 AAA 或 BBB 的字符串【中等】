@@ -1,0 +1,104 @@
+给定两个整数 A 和 B，返回任意字符串 S，要求满足：
+S 的长度为 A + B，且正好包含 A 个 'a' 字母与 B 个 'b' 字母；
+子串 'aaa' 没有出现在 S 中；
+子串 'bbb' 没有出现在 S 中。
+ 
+示例 1：
+输入：A = 1, B = 2
+输出："abb"
+解释："abb", "bab" 和 "bba" 都是正确答案。
+
+示例 2：
+输入：A = 4, B = 1
+输出："aabaa"
+ 
+提示：
+0 <= A <= 100
+0 <= B <= 100
+对于给定的 A 和 B，保证存在满足要求的 S。
+
+思路：
+考虑极端情况:
+如果A==0，返回对应的b字符串;如果B==0，返回对应的a字符串;
+如果A==B,返回ab间隔的字符串;
+如果A!=B,那就需要计算了：
+通过分析，由较短的字符插入到较长的字符中，比较号处理。
+计算间隔2个a插入b需要 消耗shorter 假设需要c个b，那么 shorter-c个b需要间隔一个a插入；
+while(i<=longer)循环，先插入较长字符，判断需不需要间隔一个长字符，加入一个短字符；再加入一个长字符；已经产生2个长字符了，判断是否需要继续加入短字符。
+
+/**
+ * @param {number} a
+ * @param {number} b
+ * @return {string}
+ */
+var strWithout3a3b = function(a, b) {
+    if (a == 0) return b == 1 ? "b" : "bb";
+    if (b == 0) return a == 1 ? "a" : "aa";
+
+    let s1 = '';
+    if(a==b){
+        while(a>0){
+            s1 += 'ab';
+            a--;
+        }
+        return s1;
+    }
+
+    let longer, shorter, longerStr, shorterStr;
+    if(a > b){
+        longer = a;
+        shorter = b;
+        longerStr = 'a'; //a比较多
+        shorterStr = 'b'; //b比较少
+    } else {
+        longer = b;
+        shorter = a;
+        longerStr = 'b'; //b比较多
+        shorterStr = 'a';//a比较少
+    }
+
+    //计算间隔2个a插入b需要 消耗shorter 假设需要c个b
+    //那么 shorter-c个b需要间隔一个a插入
+    let c = Math.floor(longer/2); //需要c个b间隔2个a插入
+    if(longer % 2 == 0){ //偶数位 -1
+        c--;
+    }
+    let d = shorter-c; //需要d个b间隔一个a插入
+
+    let s = '';
+    let i = 1; //长字符串下标
+    //let j = 1; //短字符串下标
+    //间隔2个a插入b
+    while(i<=longer){ //循环 直到一方下标结束  
+        s += longerStr; //加入较长的字符
+
+        if(d>0){//间隔一个长字符 加入一个短字符
+            s += shorterStr; 
+        }
+
+        if(i+1<=longer){ //再加入一个长字符 可能下一个不存在 需要判断
+            s += longerStr;
+        }
+
+        if(c>0){ //间隔2个加入一个短字符
+            s += shorterStr;
+        }
+
+        i += 2;
+        c--;
+        d--;
+    }
+
+    //处理可能的剩余的短字符 可不需要
+    while(c>0){
+        s += shorterStr;
+        c--;
+    }
+    while(d>0){
+        s += shorterStr;
+        d--;
+    }
+
+    return s;
+
+};
