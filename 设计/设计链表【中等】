@@ -1,0 +1,175 @@
+设计链表的实现。您可以选择使用单链表或双链表。单链表中的节点应该具有两个属性：val 和 next。val 是当前节点的值，next 是指向下一个节点的指针/引用。如果要使用双向链表，则还需要一个属性 prev 以指示链表中的上一个节点。假设链表中的所有节点都是 0-index 的。
+
+在链表类中实现这些功能：
+
+get(index)：获取链表中第 index 个节点的值。如果索引无效，则返回-1。
+addAtHead(val)：在链表的第一个元素之前添加一个值为 val 的节点。插入后，新节点将成为链表的第一个节点。
+addAtTail(val)：将值为 val 的节点追加到链表的最后一个元素。
+addAtIndex(index,val)：在链表中的第 index 个节点之前添加值为 val  的节点。如果 index 等于链表的长度，则该节点将附加到链表的末尾。如果 index 大于链表长度，则不会插入节点。如果index小于0，则在头部插入节点。
+deleteAtIndex(index)：如果索引 index 有效，则删除链表中的第 index 个节点。
+ 
+
+示例：
+MyLinkedList linkedList = new MyLinkedList();
+linkedList.addAtHead(1);
+linkedList.addAtTail(3);
+linkedList.addAtIndex(1,2);   //链表变为1-> 2-> 3
+linkedList.get(1);            //返回2
+linkedList.deleteAtIndex(1);  //现在链表是1-> 3
+linkedList.get(1);            //返回3
+
+
+提示：
+所有val值都在 [1, 1000] 之内。
+操作次数将在  [1, 1000] 之内。
+请不要使用内置的 LinkedList 库。
+
+思路:
+双向链表，构造器定义首尾指针节点，定义size记录链表的大小。
+addAtHead：在head下增加加点，修改指针指向，size++
+addAtTail：在tail前增加节点，修改指针指向，size++
+get：判断index是否合法，如果index>=size,return -1; 使用双指针，前后同时遍历，加快遍历速度
+addAtIndex：找到index所在节点，然后在其前方插入节点
+deleteAtIndex：找到index所在节点，删除此节点
+
+
+/**
+ * Initialize your data structure here.
+ */
+var MyLinkedList = function() {
+    this.head = new Node(null);
+    this.tail = new Node(null);
+    this.head.next = this.tail;
+    this.tail.pre = this.head;
+    this.size = 0;
+};
+
+function Node(val){
+    this.val = val;
+    this.pre = null; //前一个
+    this.next = null; //下一个
+}
+
+/**
+ * Get the value of the index-th node in the linked list. If the index is invalid, return -1. 
+ * @param {number} index
+ * @return {number}
+ */
+MyLinkedList.prototype.get = function(index) {
+    if(this.size==0 || index >= this.size) return -1; //链表中无数据 或者 索引值超过链表长度 返回-1
+    let node = this.getNode(index);
+    return node.val;
+};
+
+MyLinkedList.prototype.getNode = function(index) {
+    //index--;
+    //双指针前后同时遍历
+    let h = this.head, t = this.tail;
+    let left = 0, right = this.size-1;
+    while(left <= right){
+        h = h.next;
+        if(left == index) return h;
+
+        t = t.pre;
+        if(right == index) return t;
+
+        left++;
+        right--;
+    }
+
+    return null;
+}
+
+/**
+ * Add a node of value val before the first element of the linked list. After the insertion, the new node will be the first node of the linked list. 
+ * @param {number} val
+ * @return {void}
+ */
+MyLinkedList.prototype.addAtHead = function(val) {
+    let node = new Node(val);
+
+    node.next = this.head.next;
+
+    this.head.next.pre = node; //head的下一个的pre指向node
+    this.head.next = node; //head的next指向node
+
+    node.pre = this.head;
+    
+    this.size++;
+};
+
+/**
+ * Append a node of value val to the last element of the linked list. 
+ * @param {number} val
+ * @return {void}
+ */
+MyLinkedList.prototype.addAtTail = function(val) {
+    let node = new Node(val);
+
+    let last = this.tail.pre;
+    last.next = node;
+    node.pre = last;
+    node.next = this.tail;
+    this.tail.pre = node;
+    this.size++;
+};
+
+/**
+ * Add a node of value val before the index-th node in the linked list. If index equals to the length of linked list, the node will be appended to the end of linked list. If index is greater than the length, the node will not be inserted. 
+ * @param {number} index 
+ * @param {number} val
+ * @return {void}
+ */
+MyLinkedList.prototype.addAtIndex = function(index, val) {
+    if(index > this.size ) return;
+    if(index == this.size){
+        this.addAtTail(val);
+        return;
+    }
+    if(this.size == 0 || index < 0){ //直接头部插入
+        this.addAtHead(val);
+        return;
+    }
+    
+    let nodeNext = this.getNode(index);
+    //console.log(index)
+    let nodePre = nodeNext.pre;
+    let node = new Node(val);
+
+    nodePre.next = node;
+    nodeNext.pre = node;
+    node.next = nodeNext;
+    node.pre = nodePre;
+
+
+    this.size++;
+};
+
+/**
+ * Delete the index-th node in the linked list, if the index is valid. 
+ * @param {number} index
+ * @return {void}
+ */
+MyLinkedList.prototype.deleteAtIndex = function(index) {
+    if(this.size == 0 || index>=this.size ) return;
+    let node = this.getNode(index);
+    if(!node) return;
+    
+    node.pre.next = node.next;
+    node.next.pre = node.pre;
+
+    node.pre = null;
+    node.next = null;
+
+    this.size--;
+};
+
+/**
+ * Your MyLinkedList object will be instantiated and called as such:
+ * var obj = new MyLinkedList()
+ * var param_1 = obj.get(index)
+ * obj.addAtHead(val)
+ * obj.addAtTail(val)
+ * obj.addAtIndex(index,val)
+ * obj.deleteAtIndex(index)
+ */
