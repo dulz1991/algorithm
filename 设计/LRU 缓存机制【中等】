@@ -47,7 +47,6 @@ function Node(key, val){
 get的时候，返回数据之前，将此元素移动到head指针下。
 
 
-
 /**
  * @param {number} capacity
  */
@@ -56,20 +55,19 @@ var LRUCache = function(capacity) {
     this.capacity = capacity;
     this.map = {};
     
-    this.head = new Node(null,-1);
-    this.tail = new Node(null, -2);
+	//定义首尾节点
+    this.head = new Node(-1);
+    this.tail = new Node(-2);
     this.head.right = this.tail;
     this.tail.left = this.head; 
-	
-	
 };
 
-
-function Node(key, val){
-    this.key = key;
+function Node(val){
+    //this.key = key;
     this.val = val;
     this.left = null;
     this.right = null;
+	this.enable = true;
 }
 
 /** 
@@ -77,101 +75,15 @@ function Node(key, val){
  * @return {number}
  */
 LRUCache.prototype.get = function(key) {
-   // console.log(Object.keys(this.map).length)
     let node = this.map[key]; //查询key对应的节点
-    if(node){ //是否存在
-        //this.moveToHead(node); //节点移至head下一个
-        
-        this.remove(node);
-
-        let newNode = new Node(node.key, node.val);
-        this.map[key] = newNode; //添加到map
-        this.addToHead(newNode);//头部插入
-        //this.moveToHead(node);
-        
-        return node.val;
+    if(node && node.enable){ //是否存在
+        this.remove(node);  //移除此节点 
+        this.addToHead(node);//然后插入到头部
+        return node.val; //返回值
     }
     return -1;
 };
 
-//将活跃的key节点移动至head指针的下一个
-LRUCache.prototype.moveToHead2 = function(node){
-    let pre = node.left; //node节点的前一个
-    if(pre.val==-1){ //如果前一个已经是head 结束操作
-        return
-    } 
-//debugger
-    let firstNode = this.head.right; //head指针的下一个元素 
-	
-	let togeter = firstNode.right.key == node.key
-    
-	let nodeL = node.left;
-	let nodeR = node.right;
-	
-    this.head.right = node;
-    node.left = this.head;
-
-    node.right = firstNode;
-    firstNode.left = node;
-
-    if(togeter){ //node与firstNode是否相邻
-        firstNode.right = nodeR;
-        nodeR.left = firstNode;
-    } else {
-        nodeL.right = nodeR;
-    }
-
-}
-LRUCache.prototype.moveToHead = function(node){
-    let pre = node.left; //node节点的前一个
-    
-    if(pre.val==-1){ //如果前一个已经是head 结束操作
-        return
-    } 
-
-    //否则进行移动
-	let firstNode = this.head.right; //head指针的下一个元素 
-	if(firstNode.right.key == node.key){ //node与firstNode是否相邻
-		let next = node.right; //node下一个节点 需要变动左指针 指向firstNode
-		//let firstNode = this.head.right; //首元素节点 需要调节左右指针
-		//firstNode节点的左指针指向node，有指针指向node的下一个
-		firstNode.left = node;
-		firstNode.right = next;
-		
-		//node左指针指向head，右指针指向firstNode节点
-		node.left = this.head;
-		node.right = firstNode;
-
-		this.head.right = node;
-		next.left = firstNode;
-	} else { //不相邻
-		//node周边节点调整
-		let nodePre = node.left; //node的前一个节点
-		nodePre.left = node.right;
-		node.right.left = nodePre;
-		
-		//firstNode周边调整
-		node.left = this.head;
-		node.right = firstNode;
-		
-		firstNode.left = node;
-		
-		this.head.right = node;
-	}
-	
-    
-}
-
-//头部插入元素节点
-LRUCache.prototype.addToHead = function(node) {
-    let firstNode = this.head.right;
-	
-    this.head.right = node;
-    firstNode.left = node;
-	
-	node.left = this.head;
-	node.right = firstNode;
-}
 
 /** 
  * @param {number} key 
@@ -179,77 +91,68 @@ LRUCache.prototype.addToHead = function(node) {
  * @return {void}
  */
 LRUCache.prototype.put = function(key, value) {
-    if(this.size < this.capacity){ //是否达到容量
-		let node = this.map[key];
-		if(node){  //已存在
-			node.val = value;
-			this.remove(node);
-
-            node = new Node(key, value);
-            this.map[key] = node; //添加到map    
-            this.addToHead(node);
-			//this.moveToHead(node);
-			//this.size++;
-			return
-		}
-		
-        //未达到 补充到头部
-        node = new Node(key, value);
-        this.map[key] = node; //添加到map
-        this.addToHead(node);
-		this.size++;
-        return;
-    }
-	
-    //已经达到容量 
     //判断是否已经存在 已存在的 移动至头部
     //不存在的 删除尾部元素 头部插入新元素
     let node = this.map[key]; //查询key对应的节点
-    if(node){
-        //已存在的 移动至头部
+    if(node && node.enable){ //已存在
+        node.val = value;
+		this.remove(node);  //移除此节点 
+		this.addToHead(node);//然后插入到头部
+		return;
+    } 
+	if(this.size == this.capacity){ //是否达到容量
+		//已达到
+		this.removeTail();//移除尾部元素
+	} else { 
+		//未达到
+		this.size++; //size++
+	}
+	
+	if(node){
+		node.enable = true;
 		node.val = value;
-
-        this.remove(node);
-
-        let newNode = new Node(key, value);
-        this.map[key] = newNode; //添加到map
-        this.addToHead(newNode);//头部插入
-        //this.moveToHead(node);
-    } else {
-        //不存在的 删除尾部元素 头部插入新元素
-        this.removeTail();//移除尾部元素
-
-        
-
-        let newNode = new Node(key, value);
-        this.map[key] = newNode; //添加到map
-        this.addToHead(newNode);//头部插入
-    }
-
+		this.map[key] = node; //添加到map
+		this.addToHead(node);//头部插入
+	} else {
+		let newNode = new Node(value); //创建新节点
+		this.map[key] = newNode; //添加到map
+		this.addToHead(newNode);//头部插入
+	}
 };
 
+//头部插入元素节点
+LRUCache.prototype.addToHead = function(node) {
+	node.enable = true;
+    //let firstNode = this.head.right;
+	
+	this.head.right.left = node; //首元素节点 左指针指向node
+	
+	//node左右指针切换
+	node.left = this.head;
+	node.right = this.head.right;
+	
+	//头节点指向noed
+	this.head.right = node;
+}
+//移除某个节点
 LRUCache.prototype.remove = function(node) {
-    let nodeL = node.left;
-    let nodeR = node.right;
-    nodeL.right = nodeR;
-    nodeR.left = nodeL;
-    node = null;
+	node.enable = false;
+	node.left.right = node.right;
+	node.right.left = node.left;
+	
 }
 //移除尾部元素
 LRUCache.prototype.removeTail = function() {
     let tailNode = this.tail.left;
-    if(tailNode.val==-1){
-        return
-    }
-
-    if(!this.map[tailNode.key]){
-        debugger
-    }
-    delete this.map[tailNode.key]; //删除map里的元素
-
-    let preNode = tailNode.left;
-    this.tail.left = preNode;
-    preNode.right = this.tail;
+	this.remove(tailNode);
+	
+	
+    ////delete this.map[tailNode.key]; //删除map里的元素
+	//tailNode.enable = false;
+    ////let preNode = tailNode.left;
+    //tailNode.left.right = this.tail;
+	//this.tail.left = tailNode.left;
+    
 }
 
 
