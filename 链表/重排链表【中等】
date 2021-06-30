@@ -1,0 +1,66 @@
+给定一个单链表 L：L0→L1→…→Ln-1→Ln ，
+将其重新排列后变为： L0→Ln→L1→Ln-1→L2→Ln-2→…
+你不能只是单纯的改变节点内部的值，而是需要实际的进行节点交换。
+
+示例 1:
+给定链表 1->2->3->4, 重新排列为 1->4->2->3.
+
+示例 2:
+给定链表 1->2->3->4->5, 重新排列为 1->5->2->4->3.
+
+思路：
+将链表分成2部分，前一半放队列（第一个不用放），先进先出；后一半放栈，后进先出
+遍历队列和栈：
+  先把栈里面的元素弹出，放到head.next
+  接着把队列里的元素弹出，往后追加
+直到队列和栈元素全部弹出
+
+/**
+ * Definition for singly-linked list.
+ * function ListNode(val, next) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.next = (next===undefined ? null : next)
+ * }
+ */
+/**
+ * @param {ListNode} head
+ * @return {void} Do not return anything, modify head in-place instead.
+ */
+var reorderList = function(head) {
+    let stackA = [];
+    let stackB = [];
+
+    let count = 0;
+    let b = head;
+    while(b){
+        count++
+        b = b.next
+    }
+
+    let mid = Math.floor(count/2); //取中间值
+    let a = head.next, i=1;
+    while(a){
+        if(i <= mid){
+            stackA.unshift(a)
+        } else{
+            stackB.push(a)
+        }
+        a = a.next
+        i++
+    }
+
+    a = head;
+    while(stackA.length>0 || stackB.length>0){
+        if(stackB.length>0){
+            a.next = stackB.pop()
+            a = a.next
+        }
+        if(stackA.length>0){
+            a.next = stackA.pop()
+            a = a.next
+        }
+    }
+    a.next = null;
+    return head;
+
+};
