@@ -1,0 +1,182 @@
+给定一个 m x n 二维字符网格 board 和一个单词（字符串）列表 words，找出所有同时在二维网格和字典中出现的单词。
+
+单词必须按照字母顺序，通过 相邻的单元格 内的字母构成，其中“相邻”单元格是那些水平相邻或垂直相邻的单元格。同一个单元格内的字母在一个单词中不允许被重复使用。
+
+ 
+
+示例 1：
+
+
+输入：board = [["o","a","a","n"],["e","t","a","e"],["i","h","k","r"],["i","f","l","v"]], words = ["oath","pea","eat","rain"]
+输出：["eat","oath"]
+示例 2：
+
+
+输入：board = [["a","b"],["c","d"]], words = ["abcb"]
+输出：[]
+ 
+
+提示：
+m == board.length
+n == board[i].length
+1 <= m, n <= 12
+board[i][j] 是一个小写英文字母
+1 <= words.length <= 3 * 104
+1 <= words[i].length <= 10
+words[i] 由小写英文字母组成
+words 中的所有字符串互不相同
+
+思路：
+* 方式一：暴力破解 会超时
+ * 方式二：前缀树 先将words生成到前缀树上 在逐个board上的单词去遍历前缀树 每次遍历到end节点 则表示成功找到一个单词
+
+/**
+ * @param {character[][]} board
+ * @param {string[]} words
+ * @return {string[]}
+ * 方式一：暴力破解 会超时
+ * 方式二：前缀树 先将words生成到前缀树上 在逐个board上的单词去遍历前缀树 每次遍历到end节点 则表示成功找到一个单词
+ */
+
+var findWords = function(board, words) {
+    if(!words || words.length==0){
+        return [];
+    }
+    let res = [];
+
+    //console.log(board.length, words.length)
+    //return [];
+
+    if( words.length>=676){
+        var root = new TreeNode();
+        root = eachTrieNode(words, root);
+        searchTree(root, board, res);
+        return res;
+    }
+    
+    let maxLen = board.length * board[0].length;
+    for(let i=0; i<words.length; i++) {
+        if(words[i].length>maxLen){
+            continue;
+        }
+        each(board, words[i], res);
+    }
+    return res;
+};
+function each(board, word, res){
+	debugger
+    for(let j=0; j<board.length; j++){
+        let arr = board[j];
+        for(let k=0; k<arr.length; k++){
+            let b = search(word, board, '', j, k, res,  '');
+            if(b){ return; }
+        }
+    }
+}
+/**
+ * 暴力方式
+ * pos：迭代方向 比如, 如果是x+1迭代，就不能x-1迭代。1:x+1 2:x-1 3:y+1 4:y-1  
+ */
+function search(word, board, temp, x, y, res, existed){  
+    if(res[res.length-1] == word){ //是否已提前找到
+        return true;
+    }
+    if(word == temp){ //temp是否与word相等
+        res.push(word);
+        return true;
+    }
+    if(temp.length >= word.length){ //temp长度是否超过word长度 
+        return false;
+    }
+    if(temp!='' && !word.startsWith(temp)){ //temp不属于word的起始字符 return false
+        return false;
+    }
+    let arr = board[x];
+    if(!arr || !arr[y]){ //是否存在x这一行 一级y这一列
+        return false; //不存在返回false
+    }
+	
+	let _e = x+','+y+':';
+	if(existed.indexOf(_e)>=0){ //是否已遍历过
+        return false;
+    } else {
+        existed += _e;
+    }
+    //console.log(existed)
+
+    temp += arr[y];
+    let b1,b2,b3,b4;
+    b1 = search(word, board, temp, x+1, y, res, existed);
+    b2 = search(word, board, temp, x-1, y, res, existed);
+    b3 = search(word, board, temp, x, y+1, res, existed);
+    b4 = search(word, board, temp, x, y-1, res, existed);
+    
+    if(b1 || b2 || b3 || b4){
+        return true;
+    }
+    
+    return false;
+}
+
+
+/**
+ * 前缀树方式
+ */
+var TreeNode =function(val){
+    this.val = val; 
+    this.map = {};
+    this.end=false;
+}
+function eachTrieNode(words, root){
+    for(let i=0; i<words.length; i++){
+        let str = words[i];
+		let node = root;
+		for(let j=0; j<str.length; j++){
+			if(node.map[str[j]]){ //是否存在此字母
+			} else {
+				node.map[str[j]] = new TreeNode(str[j]);
+			}
+			node = node.map[str[j]];
+		}
+		node.end = true;
+    }
+	return root;
+}
+function searchTree(root, board, res){
+	debugger
+	for(let j=0; j<board.length; j++){
+        let arr = board[j];
+        for(let k=0; k<arr.length; k++){
+            search2(root, board,'', j, k, res,  '');
+        }
+    }
+}
+function search2(node, board,temp, x, y, res, existed){  
+	if(node.end && res.indexOf(temp)<0 ){
+			res.push(temp);
+		}	
+		
+	let arr = board[x];
+    if(!arr || !arr[y]){ //是否存在x这一行 一级y这一列
+        return; //不存在返回false
+    }
+	let _e = x+','+y+'->';
+	if(existed.indexOf(_e)>=0){ //是否已遍历过
+        return;
+    } else {
+        existed += _e;
+    }
+	
+	for(var k in node.map){
+		if(k!=arr[y]){ //此节点值 与 当前的board值不等 跳过
+			continue;
+		}
+		
+		temp += arr[y];
+		search2(node.map[k], board, temp, x+1, y, res, existed);
+		search2(node.map[k], board, temp, x-1, y, res, existed);
+		search2(node.map[k], board, temp, x, y+1, res, existed);
+		search2(node.map[k], board, temp, x, y-1, res, existed);
+	}
+	
+}
