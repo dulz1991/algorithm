@@ -1,0 +1,68 @@
+给定一组 互不相同 的单词， 找出所有 不同 的索引对 (i, j)，使得列表中的两个单词， words[i] + words[j] ，可拼接成回文串。
+
+
+示例 1：
+输入：words = ["abcd","dcba","lls","s","sssll"]
+输出：[[0,1],[1,0],[3,2],[2,4]] 
+解释：可拼接成的回文串为 ["dcbaabcd","abcddcba","slls","llssssll"]
+
+示例 2：
+输入：words = ["bat","tab","cat"]
+输出：[[0,1],[1,0]] 
+解释：可拼接成的回文串为 ["battab","tabbat"]
+
+示例 3：
+输入：words = ["a",""]
+输出：[[0,1],[1,0]]
+ 
+提示：
+1 <= words.length <= 5000
+0 <= words[i].length <= 300
+words[i] 由小写英文字母组成
+
+思路：
+方式一：暴力搜索
+双侧循环，第一层，从0到length-2；第二层，从i+1到length-1
+
+方式二：如果words[i]和words[j]可以构成回文，那么分2种情况讨论，
+1：words[i]长度和words[j]相等，那么words[i]和words[j]的逆序相等
+2：如果一长一短，那么 长的一方一定存在某一边的子字符串==短字符串的逆序，长字符串的剩余部分也可以构成回文
+
+
+/**
+ * @param {string[]} words
+ * @return {number[][]}
+ */
+var palindromePairs = function(words) {
+    let arr = [];
+
+    for(let i=0; i<words.length-1; i++){
+        for(let j=i+1; j<words.length; j++){
+            isPalindrome(arr, words, i, j);
+        }
+    }
+
+    return arr;
+};
+
+function isPalindrome(arr, words, i, j){
+    //let a = words[i], b = words[j];
+    
+    let strA = words[i] + words[j]
+    if(isTrue(strA)) arr.push([i,j])
+
+    let strB = words[j] + words[i];
+    if(isTrue(strB)) arr.push([j,i])
+}
+
+function isTrue(str){
+    let l = 0, r = str.length-1;
+    while(l<r){
+        if(str[l] != str[r]) {
+            return false
+        }
+        l++
+        r--
+    }
+    return true
+}
