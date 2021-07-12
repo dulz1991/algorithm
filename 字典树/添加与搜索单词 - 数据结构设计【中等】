@@ -33,7 +33,7 @@ addWord 中的 word 由小写英文字母组成
 search 中的 word 由 '.' 或小写英文字母组成
 最多调用 50000 次 addWord 和 search
 
-
+思路见注释
 
 /**
  * Initialize your data structure here.
@@ -81,8 +81,9 @@ WordDictionary.prototype.doSearch = function(res, word, i, node) {
 
     //是否通配符
     if(word[i] != '.'){
-        if(!node.map[word[i]]) return //不匹配
         node = node.map[word[i]]
+        if(!node) return //不匹配
+
         if(i == word.length-1) {
             res.found = node.end
         } else {
@@ -94,17 +95,16 @@ WordDictionary.prototype.doSearch = function(res, word, i, node) {
     //是否是最后一个
     if(i == word.length-1) {
         //最后一个字符为通配符 判断node还有没有map，如果没有 返回false；如果有，判断其中有没有为end的
-        if(!node){
-            res.found = false
-            return 
-        }
+        
+        /*
         let keys = Object.keys(node.map)
         if(keys.length == 0){
             res.found = false
             return 
         }
+        */
         for(let k in node.map){
-            if(node.map[k].end){
+            if(node.map[k] && node.map[k].end){
                 res.found = true
                 return
             }
