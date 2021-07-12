@@ -1,0 +1,128 @@
+请你设计一个数据结构，支持 添加新单词 和 查找字符串是否与任何先前添加的字符串匹配 。
+
+实现词典类 WordDictionary ：
+
+WordDictionary() 初始化词典对象
+void addWord(word) 将 word 添加到数据结构中，之后可以对它进行匹配
+bool search(word) 如果数据结构中存在字符串与 word 匹配，则返回 true ；否则，返回  false 。word 中可能包含一些 '.' ，每个 . 都可以表示任何一个字母。
+ 
+
+示例：
+
+输入：
+["WordDictionary","addWord","addWord","addWord","search","search","search","search"]
+[[],["bad"],["dad"],["mad"],["pad"],["bad"],[".ad"],["b.."]]
+输出：
+[null,null,null,null,false,true,true,true]
+
+解释：
+WordDictionary wordDictionary = new WordDictionary();
+wordDictionary.addWord("bad");
+wordDictionary.addWord("dad");
+wordDictionary.addWord("mad");
+wordDictionary.search("pad"); // return False
+wordDictionary.search("bad"); // return True
+wordDictionary.search(".ad"); // return True
+wordDictionary.search("b.."); // return True
+ 
+
+提示：
+
+1 <= word.length <= 500
+addWord 中的 word 由小写英文字母组成
+search 中的 word 由 '.' 或小写英文字母组成
+最多调用 50000 次 addWord 和 search
+
+
+
+/**
+ * Initialize your data structure here.
+ */
+var WordDictionary = function() {
+    this.root = new Node(); 
+};
+function Node(){
+    this.map = {};
+    this.end = false;
+}
+
+/**
+ * Adds a word into the data structure. 
+ * @param {string} word
+ * @return {void}
+ */
+WordDictionary.prototype.addWord = function(word) {
+    let node = this.root;
+    for(let i=0; i<word.length; i++){
+        if(node.map[word[i]]){ //是否已存在此单词
+            node = node.map[word[i]]
+        } else { //不存在 创建节点
+            let newNode = new Node();
+            node.map[word[i]] = newNode;
+            node = newNode
+        }
+    }
+    node.end = true; //将最后一个单词标记为true
+};
+
+/**
+ * Returns if the word is in the data structure. A word could contain the dot character '.' to represent any one letter. 
+ * @param {string} word
+ * @return {boolean}
+ */
+WordDictionary.prototype.search = function(word) {
+    let res = {found:false}
+    let node = this.root;
+    this.doSearch(res, word, 0, node)
+    return res.found
+};
+WordDictionary.prototype.doSearch = function(res, word, i, node) {
+    if(res.found) return //是否已找到
+
+    //是否通配符
+    if(word[i] != '.'){
+        if(!node.map[word[i]]) return //不匹配
+        node = node.map[word[i]]
+        if(i == word.length-1) {
+            res.found = node.end
+        } else {
+            this.doSearch(res, word, i+1, node) //判断下一个节点
+        }
+        return
+    }
+
+    //是否是最后一个
+    if(i == word.length-1) {
+        //最后一个字符为通配符 判断node还有没有map，如果没有 返回false；如果有，判断其中有没有为end的
+        if(!node){
+            res.found = false
+            return 
+        }
+        let keys = Object.keys(node.map)
+        if(keys.length == 0){
+            res.found = false
+            return 
+        }
+        for(let k in node.map){
+            if(node.map[k].end){
+                res.found = true
+                return
+            }
+        }        
+        res.found = false
+        return 
+    }
+
+    for(let k in node.map){
+        this.doSearch(res, word, i+1, node.map[k]) //判断下一个节点
+    }
+    //this.doSearch(res, word, i+1, node) //判断下一个节点
+
+};
+
+/**
+ * Your WordDictionary object will be instantiated and called as such:
+ * var obj = new WordDictionary()
+ * obj.addWord(word)
+ * var param_2 = obj.search(word)
+ */
